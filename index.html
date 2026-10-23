@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Caisse AEFMY</title>
+<style>body{margin:0}[hidden]{display:none!important}</style>
+<style>
+/* Layout : une colonne sobre, noir sur blanc ; solde en tête, recherche nominative, tableau des membres, journal. */
+:root{
+  --bg:#FFFFFF; --surface:#FFFFFF; --ink:#111111; --muted:#555555; --line:#DDDDDD; --soft:#F4F4F4;
+  --ok:#1D6B3A; --due:#A31621;
+  --body:Arial,Helvetica,sans-serif;
+  color-scheme:light;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+h1,h2{font-family:var(--body);font-weight:700;color:var(--ink);margin:0;text-wrap:balance}
+h1{font-size:1.7rem;line-height:1.2}
+h2{font-size:1.15rem}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.hero{border:2px solid var(--ink);border-radius:8px;padding:18px;display:grid;gap:14px}
+.solde{font-size:2.4rem;line-height:1;font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpi{border-top:1px solid var(--line);padding-top:8px}
+.kpi b{display:block;font-size:1.05rem}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.bar{height:8px;background:var(--soft);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink)}
+.small{font-size:.85rem;color:var(--muted)}
+.panel{border-top:2px solid var(--ink);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+input,select,button{font:inherit}
+input[type=search],input[type=text],input[type=number],input[type=date],select{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #999;border-radius:6px;background:#fff;color:var(--ink)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.me{display:grid;gap:10px;border:1px solid var(--ink);border-radius:8px;padding:14px}
+.me .name{font-size:1.15rem;font-weight:700}
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.trio div{background:var(--soft);border-radius:6px;padding:8px 10px}
+.trio b{display:block}
+.trio span{font-size:.8rem;color:var(--muted)}
+.chip{display:inline-block;font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;border:1px solid currentColor}
+.chip.ok{color:var(--ok)}
+.chip.part{color:var(--ink)}
+.chip.due{color:var(--due)}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th{text-align:left;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 6px;border-bottom:2px solid var(--ink)}
+td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.r,th.r{text-align:right}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--soft)}
+tfoot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:none}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filters button{border:1px solid #999;background:#fff;color:var(--ink);border-radius:6px;padding:6px 12px;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn{background:var(--ink);color:#fff;border:1px solid var(--ink);border-radius:6px;padding:11px 16px;font-weight:700;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink)}
+.del{background:none;border:none;color:var(--due);cursor:pointer;font-size:1.1rem;padding:0 4px}
+.tresor{border:1px dashed var(--ink);border-radius:8px;padding:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.grid2 label,.panel label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.save{position:sticky;bottom:max(12px,env(safe-area-inset-bottom,0px));background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.save .btn{padding:9px 14px}
+.empty{color:var(--muted);font-style:italic}
+footer{font-size:.8rem;color:var(--muted)}
+@media (max-width:520px){.kpis{grid-template-columns:1fr 1fr}.kpis .kpi:last-child{grid-column:1/-1}.grid2{grid-template-columns:1fr}.solde{font-size:2rem}.hide-sm{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:4px">
+    <span class="eyebrow">Trésorerie de l'association</span>
+    <h1>Caisse AEFMY</h1>
+    <span class="small" id="maj"></span>
+  </header>
+
+  <section class="hero" aria-label="Situation de la caisse">
+    <div>
+      <div class="eyebrow">Solde disponible en caisse</div>
+      <div class="solde num" id="solde">…</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><b class="num" id="kEnc"></b><span>Total encaissé</span></div>
+      <div class="kpi"><b class="num" id="kDep"></b><span>Dépenses</span></div>
+      <div class="kpi"><b class="num" id="kRes"></b><span>Reste à recouvrer</span></div>
+    </div>
+    <div style="display:grid;gap:6px">
+      <div class="bar"><i id="barFill" style="width:0"></i></div>
+      <span class="small" id="barTxt"></span>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="hMoi">
+    <h2 id="hMoi">Ma situation</h2>
+    <label for="q">Tapez votre nom pour voir ce que vous avez versé et ce qu'il vous reste à payer</label>
+    <input type="search" id="q" placeholder="Ex. : Pascale, Kuaban…" autocomplete="off">
+    <div id="meBox"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="hMembres">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap">
+      <h2 id="hMembres">Situation des membres</h2>
+      <span class="small" id="regle"></span>
+    </div>
+    <div class="filters" role="group" aria-label="Filtrer">
+      <button type="button" data-f="tous" aria-pressed="true">Tous</button>
+      <button type="button" data-f="ajour" aria-pressed="false">À jour</button>
+      <button type="button" data-f="reste" aria-pressed="false">Reste à payer</button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Membre</th><th class="r hide-sm">Inscription</th><th class="r hide-sm">Solidarité</th><th class="r">Reste</th><th>Statut</th></tr></thead>
+        <tbody id="tb"></tbody>
+        <tfoot id="tf"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="hJournal">
+    <h2 id="hJournal">Journal des mouvements</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Date</th><th>Libellé</th><th class="r">Entrée</th><th class="r">Sortie</th><th id="thDel" hidden></th></tr></thead>
+        <tbody id="jb"></tbody>
+      </table>
+    </div>
+  </section>
+
+
+  <footer id="foot">Montants en francs CFA. Pour toute erreur, contactez le trésorier.</footer>
+</div>
+
+<script type="application/json" id="etat">{"asso":"AEFMY","maj":"2026-05-01","params":{"inscription":2000,"solidarite":50000},"membres":[{"id":"m1","nom":"Pascale Mpono"},{"id":"m2","nom":"Gouag"},{"id":"m3","nom":"Ebene Manon"},{"id":"m4","nom":"Alain Kuaban"},{"id":"m5","nom":"Yves Ango"},{"id":"m6","nom":"Francis Daniel Nkolo Tolo"},{"id":"m7","nom":"Prisca Angandji"},{"id":"m8","nom":"Tatiana Adèle Abo'o Melom"},{"id":"m9","nom":"Karl Guy Kwedi"},{"id":"m10","nom":"Ferdinand Mebouinz"},{"id":"m11","nom":"Fabrice Arroye"},{"id":"m12","nom":"Linda Esso"},{"id":"m13","nom":"Abdou Nsoufon"},{"id":"m14","nom":"Saurelle Foumane"},{"id":"m15","nom":"Pretty Mbouyap"},{"id":"m16","nom":"Marthe Dereine Aba'a"}],"versements":[{"id":"v1","date":"2026-05-01","membre":"m1","type":"inscription","montant":2000},{"id":"v2","date":"2026-05-01","membre":"m2","type":"inscription","montant":2000},{"id":"v3","date":"2026-05-01","membre":"m3","type":"inscription","montant":2000},{"id":"v4","date":"2026-05-01","membre":"m4","type":"inscription","montant":2000},{"id":"v5","date":"2026-05-01","membre":"m5","type":"inscription","montant":2000},{"id":"v6","date":"2026-05-01","membre":"m6","type":"inscription","montant":2000},{"id":"v7","date":"2026-05-01","membre":"m7","type":"inscription","montant":2000},{"id":"v8","date":"2026-05-01","membre":"m8","type":"inscription","montant":2000},{"id":"v9","date":"2026-05-01","membre":"m9","type":"inscription","montant":2000},{"id":"v10","date":"2026-05-01","membre":"m10","type":"inscription","montant":2000},{"id":"v11","date":"2026-05-01","membre":"m11","type":"inscription","montant":2000},{"id":"v12","date":"2026-05-01","membre":"m12","type":"inscription","montant":2000},{"id":"v13","date":"2026-05-01","membre":"m13","type":"inscription","montant":2000},{"id":"v14","date":"2026-05-01","membre":"m14","type":"inscription","montant":2000},{"id":"v15","date":"2026-05-01","membre":"m15","type":"inscription","montant":2000},{"id":"v16","date":"2026-05-01","membre":"m1","type":"solidarite","montant":20000},{"id":"v17","date":"2026-05-01","membre":"m5","type":"solidarite","montant":50000},{"id":"v18","date":"2026-05-01","membre":"m8","type":"solidarite","montant":50000},{"id":"v19","date":"2026-05-01","membre":"m12","type":"solidarite","montant":10000},{"id":"v20","date":"2026-05-01","membre":"m15","type":"solidarite","montant":50000},{"id":"v21","date":"2026-05-01","membre":"m2","type":"solidarite","montant":40000},{"id":"v22","date":"2026-05-01","membre":"m7","type":"solidarite","montant":50000},{"id":"v23","date":"2026-05-01","membre":"m4","type":"solidarite","montant":50000},{"id":"v24","date":"2026-05-01","membre":"m13","type":"solidarite","montant":50000},{"id":"v25","date":"2026-05-01","membre":"m12","type":"solidarite","montant":40000},{"id":"v26","date":"2026-05-01","membre":"m3","type":"solidarite","montant":25000},{"id":"v27","date":"2026-05-01","membre":"m16","type":"solidarite","montant":25000},{"id":"v28","date":"2026-05-01","membre":"m1","type":"solidarite","montant":30000},{"id":"v29","date":"2026-05-01","membre":"m2","type":"solidarite","montant":10000}],"depenses":[]}</script>
+
+<script>
+(function(){
+    var etatEl = document.getElementById('etat');
+  var saved = JSON.parse(etatEl.textContent);
+  var S = JSON.parse(JSON.stringify(saved));
+  var dirty = false, isTresorier = false, filtre = 'tous', selId = null;
+
+  var $ = function(id){return document.getElementById(id)};
+  var fmt = function(n){return Math.round(n).toLocaleString('fr-FR').replace(/ | /g,' ') + ' F'};
+  var fdate = function(d){var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0]};
+  var esc = function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var norm = function(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()};
+  var today = function(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+  var nid = function(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,5)};
+
+  function situation(m){
+    var ins=0, sol=0, hist=[];
+    S.versements.forEach(function(v){ if(v.membre===m.id){ if(v.type==='inscription') ins+=v.montant; else sol+=v.montant; hist.push(v);} });
+    var du = S.params.inscription + S.params.solidarite;
+    var paye = ins+sol;
+    var reste = Math.max(0, S.params.inscription-ins) + Math.max(0, S.params.solidarite-sol);
+    var statut = reste===0 ? 'ok' : (paye>0 ? 'part' : 'due');
+    return {ins:ins,sol:sol,paye:paye,du:du,reste:reste,statut:statut,hist:hist};
+  }
+  var chipTxt = {ok:'À jour',part:'Partiel',due:'Non versé'};
+
+  function render(){
+    var enc = S.versements.reduce(function(a,v){return a+v.montant},0);
+    var dep = S.depenses.reduce(function(a,d){return a+d.montant},0);
+    var sits = S.membres.map(function(m){return {m:m,s:situation(m)}});
+    var reste = sits.reduce(function(a,x){return a+x.s.reste},0);
+    var attendu = sits.reduce(function(a,x){return a+x.s.du},0);
+    $('solde').textContent = fmt(enc-dep);
+    $('kEnc').textContent = fmt(enc);
+    $('kDep').textContent = fmt(dep);
+    $('kRes').textContent = fmt(reste);
+    var pct = attendu ? Math.min(100, Math.round((attendu-reste)/attendu*100)) : 0;
+    $('barFill').style.width = pct+'%';
+    var nOk = sits.filter(function(x){return x.s.statut==='ok'}).length;
+    $('barTxt').textContent = pct+' % des cotisations attendues recouvrées · '+nOk+' membre'+(nOk>1?'s':'')+' à jour sur '+S.membres.length;
+    $('maj').textContent = 'Dernière mise à jour : '+fdate(S.maj);
+    $('regle').textContent = 'Dû par membre : inscription '+fmt(S.params.inscription)+' + solidarité '+fmt(S.params.solidarite);
+
+    // tableau des membres
+    var rows = sits.filter(function(x){return filtre==='tous' || (filtre==='ajour' ? x.s.statut==='ok' : x.s.statut!=='ok')});
+    $('tb').innerHTML = rows.map(function(x){
+      return '<tr class="click" data-id="'+x.m.id+'" tabindex="0"><td>'+esc(x.m.nom)+'</td><td class="r num hide-sm">'+fmt(x.s.ins)+'</td><td class="r num hide-sm">'+fmt(x.s.sol)+'</td><td class="r num">'+(x.s.reste?fmt(x.s.reste):'—')+'</td><td><span class="chip '+x.s.statut+'">'+chipTxt[x.s.statut]+'</span></td></tr>';
+    }).join('') || '<tr><td colspan="5" class="empty">Aucun membre dans ce filtre.</td></tr>';
+    var tIns = sits.reduce(function(a,x){return a+x.s.ins},0), tSol = sits.reduce(function(a,x){return a+x.s.sol},0);
+    $('tf').innerHTML = '<tr><td>Total ('+S.membres.length+' membres)</td><td class="r num hide-sm">'+fmt(tIns)+'</td><td class="r num hide-sm">'+fmt(tSol)+'</td><td class="r num">'+fmt(reste)+'</td><td></td></tr>';
+
+    // journal
+    var nomDe = {}; S.membres.forEach(function(m){nomDe[m.id]=m.nom});
+    var j = S.versements.map(function(v,i){return {k:'v',o:v,i:i,date:v.date,lib:(v.type==='inscription'?'Inscription':'Solidarité')+' · '+(nomDe[v.membre]||'?'),e:v.montant,s:0}})
+      .concat(S.depenses.map(function(d,i){return {k:'d',o:d,i:i,date:d.date,lib:'Dépense · '+d.libelle,e:0,s:d.montant}}));
+    j.sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:(b.i-a.i)});
+    $('thDel').hidden = !isTresorier;
+    $('jb').innerHTML = j.map(function(r){
+      return '<tr><td class="num">'+fdate(r.date)+'</td><td>'+esc(r.lib)+'</td><td class="r num">'+(r.e?fmt(r.e):'')+'</td><td class="r num">'+(r.s?fmt(r.s):'')+'</td>'+(isTresorier?'<td><button class="del" type="button" aria-label="Supprimer" data-k="'+r.k+'" data-id="'+r.o.id+'">×</button></td>':'')+'</tr>';
+    }).join('') || '<tr><td colspan="4" class="empty">Aucun mouvement.</td></tr>';
+
+    renderMe();
+  }
+
+  function renderMe(){
+    var q = norm($('q').value.trim());
+    var box = $('meBox');
+    var m = null;
+    if(selId){ m = S.membres.find(function(x){return x.id===selId}); }
+    if(!m && q.length>=2){
+      var hits = S.membres.filter(function(x){return norm(x.nom).indexOf(q)>=0});
+      if(hits.length===1) m = hits[0];
+      else if(hits.length>1){
+        box.innerHTML = '<div class="filters">'+hits.map(function(h){return '<button type="button" data-pick="'+h.id+'">'+esc(h.nom)+'</button>'}).join('')+'</div>';
+        return;
+      } else { box.innerHTML = '<p class="empty" style="margin:0">Aucun membre ne correspond. Vérifiez l\'orthographe ou contactez le trésorier.</p>'; return; }
+    }
+    if(!m){ box.innerHTML=''; return; }
+    var s = situation(m);
+    var msg = s.reste===0 ? 'Vous êtes à jour de vos cotisations. Merci !' : 'Il vous reste '+fmt(s.reste)+' à verser.';
+    box.innerHTML = '<div class="me"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><span class="name">'+esc(m.nom)+'</span><span class="chip '+s.statut+'">'+chipTxt[s.statut]+'</span></div>'+
+      '<div class="trio"><div><b class="num">'+fmt(s.du)+'</b><span>Dû</span></div><div><b class="num">'+fmt(s.paye)+'</b><span>Versé</span></div><div><b class="num">'+fmt(s.reste)+'</b><span>Reste</span></div></div>'+
+      '<strong>'+msg+'</strong>'+
+      (s.hist.length ? '<div class="small">'+s.hist.map(function(v){return fdate(v.date)+' · '+(v.type==='inscription'?'inscription':'solidarité')+' · '+fmt(v.montant)}).join('<br>')+'</div>' : '<div class="small">Aucun versement enregistré.</div>')+
+      '</div>';
+  }
+
+  // Interactions publiques
+  $('q').addEventListener('input', function(){ selId=null; renderMe(); });
+  $('meBox').addEventListener('click', function(e){ var b=e.target.closest('[data-pick]'); if(b){ selId=b.getAttribute('data-pick'); renderMe(); } });
+  function pickRow(tr){ selId = tr.getAttribute('data-id'); var m=S.membres.find(function(x){return x.id===selId}); $('q').value = m?m.nom:''; renderMe(); $('hMoi').scrollIntoView({behavior:'smooth',block:'start'}); }
+  $('tb').addEventListener('click', function(e){ var tr=e.target.closest('tr[data-id]'); if(tr) pickRow(tr); });
+  $('tb').addEventListener('keydown', function(e){ if(e.key==='Enter'){ var tr=e.target.closest('tr[data-id]'); if(tr) pickRow(tr); } });
+  document.querySelectorAll('.filters [data-f]').forEach(function(b){
+    b.addEventListener('click', function(){ filtre=b.getAttribute('data-f'); document.querySelectorAll('.filters [data-f]').forEach(function(x){x.setAttribute('aria-pressed', String(x===b))}); render(); });
+  });
+
+  render();
+
+})();
+</script>
+</body>
+</html>
